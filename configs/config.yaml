@@ -1,0 +1,99 @@
+# =============================================================================
+# Adversarial Traffic Sign Recognition - Configuration
+# =============================================================================
+
+# Dataset settings
+dataset:
+  name: "GTSRB"
+  num_classes: 43
+  image_size: 224
+  val_split: 0.1
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+
+# Training settings
+training:
+  batch_size: 64
+  num_epochs: 10
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  optimizer: "adam"
+  scheduler: "cosine"
+  early_stopping:
+    enabled: true
+    patience: 5
+    min_delta: 0.001
+
+# Model settings
+models:
+  - resnet50
+  - efficientnet_b0
+  - vit
+
+# Classical attack settings
+attacks:
+  fgsm:
+    eps: 0.03
+  pgd:
+    eps: 0.03
+    alpha: 0.01
+    steps: 10
+  cw:
+    c: 1
+    kappa: 0
+    steps: 100
+    lr: 0.01
+
+# Diffusion attack settings
+diffusion:
+  model: "runwayml/stable-diffusion-v1-5"
+  strength: 0.7
+  guidance_scale: 7.5
+  num_samples: 1000
+  prompts:
+    weather:
+      - "in heavy rain"
+      - "in dense fog"
+      - "in thick snow"
+      - "in a blizzard"
+      - "in a thunderstorm"
+      - "in freezing rain"
+      - "in dust storm"
+      - "in sandstorm"
+    lighting:
+      - "at night"
+      - "at night under street lights"
+      - "at sunset with low light"
+      - "at sunrise"
+      - "in bright sunlight"
+      - "in harsh midday sun with glare"
+      - "at dusk in dim lighting"
+      - "in deep shadow"
+      - "with lens flare"
+    combined:
+      - "in fog at night"
+      - "in rain at dusk"
+      - "in fog and snow"
+      - "at night with heavy snow"
+      - "in rainstorm with wet reflections"
+      - "in snow at night"
+    surface:
+      - "covered in frost"
+      - "covered in ice"
+      - "dirty, muddy surface"
+      - "faded, washed-out sign"
+      - "with extreme motion blur"
+
+# Evaluation settings
+evaluation:
+  max_batches: 50  # Set to null for full dataset
+  metrics:
+    - lpips
+    - ssim
+    - accuracy
+    - transferability
+
+# Hardware settings
+hardware:
+  num_workers: 8
+  pin_memory: true
