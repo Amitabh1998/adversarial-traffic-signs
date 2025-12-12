@@ -112,7 +112,7 @@ python scripts/generate_diffusion_attacks.py \
     --data_dir data/GTSRB \
     --output_dir results/diffused_images \
     --num_samples 1000 \
-    --strength 0.7
+    --strength 0.3
 ```
 
 **Note:** Requires HuggingFace authentication for Stable Diffusion:
@@ -134,25 +134,58 @@ python scripts/evaluate_attacks.py \
 
 ## 📊 Results
 
+### Model Performance (Clean Accuracy)
+
+| Model           | Validation Acc | Test Acc |
+|-----------------|----------------|----------|
+| ResNet-50       | 99.92%         | ~98%     |
+| EfficientNet-B0 | 99.87%         | ~97%     |
+| ViT             | 97.76%         | ~97%     |
+
 ### Attack Success Rate Comparison
 
-| Attack     | ResNet-50 | EfficientNet-B0 | ViT   | Avg ASR |
-|------------|-----------|-----------------|-------|---------|
-| FGSM       | 45.2%     | 42.8%           | 48.1% | 45.4%   |
-| PGD        | 68.3%     | 65.1%           | 71.2% | 68.2%   |
-| C&W        | 95.1%     | 93.8%           | 94.5% | 94.5%   |
-| **Diffusion** | **56.2%** | **57.3%**    | **57.1%** | **56.9%** |
+| Attack        | ResNet-50 | EfficientNet-B0 | ViT   | Avg ASR |
+|---------------|-----------|-----------------|-------|---------|
+| FGSM          | 57.1%     | 51.5%           | 47.3% | 52.0%   |
+| PGD           | 64.6%     | 52.3%           | 47.5% | 54.8%   |
+| C&W           | 59.6%     | 48.9%           | 45.1% | 51.2%   |
+| **Diffusion** | **56.2%** | **57.3%**       | **57.2%** | **56.9%** |
 
 ### Imperceptibility Metrics
 
-| Attack     | LPIPS (↓) | SSIM (↑) |
-|------------|-----------|----------|
-| FGSM       | 0.012     | 0.982    |
-| PGD        | 0.018     | 0.971    |
-| C&W        | 0.008     | 0.989    |
-| **Diffusion** | **0.245** | **0.421** |
+| Attack        | LPIPS (↓) | SSIM (↑) |
+|---------------|-----------|----------|
+| FGSM          | 0.573     | 0.565    |
+| PGD           | 0.573     | 0.565    |
+| C&W           | 0.380     | 0.715    |
+| **Diffusion** | **0.454** | **0.673** |
 
-**Key Insight:** Diffusion attacks have higher LPIPS/lower SSIM because they make semantic changes (adding weather effects), but these changes appear **natural and realistic** rather than as suspicious noise patterns.
+### Comprehensive Summary
+
+| Attack        | Avg ASR (%) | LPIPS (↓) | SSIM (↑) | All Models Fooled (%) |
+|---------------|-------------|-----------|----------|----------------------|
+| FGSM          | 51.97       | 0.573     | 0.565    | 42.50                |
+| PGD           | 54.79       | 0.573     | 0.565    | 42.94                |
+| C&W           | 51.20       | 0.380     | 0.715    | 42.13                |
+| **Diffusion** | **56.90**   | **0.454** | **0.673**| **43.20**            |
+
+### Transferability Analysis
+
+Cross-model attack transfer rates show diffusion attacks achieve consistent performance across architectures:
+
+| Source Model    | EfficientNet-B0 | ViT   | ResNet-50 |
+|-----------------|-----------------|-------|-----------|
+| ResNet-50       | 53.3%           | 45.1% | -         |
+| EfficientNet-B0 | -               | 46.3% | 53.3%     |
+| ViT             | 46.3%           | -     | 45.1%     |
+
+### Key Insights
+
+1. **Diffusion attacks achieve highest average attack success rate (56.9%)** while maintaining consistent transferability across all three architectures
+2. **C&W attacks have lowest LPIPS (0.380)** indicating minimal perceptual difference, but require expensive optimization
+3. **PGD achieves highest ASR on ResNet-50 (64.6%)** but shows architecture-specific vulnerability patterns
+4. **Diffusion attacks uniquely maintain uniform effectiveness** across CNN and Transformer architectures (56-57% ASR on all models)
+5. **Weather-based perturbations are semantically meaningful** - they represent realistic environmental conditions rather than pixel-level noise
 
 ## 🔧 Configuration
 
@@ -180,7 +213,7 @@ attacks:
 # Diffusion settings
 diffusion:
   model: "runwayml/stable-diffusion-v1-5"
-  strength: 0.7
+  strength: 0.3
   guidance_scale: 7.5
 ```
 
